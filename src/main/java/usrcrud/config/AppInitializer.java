@@ -19,7 +19,7 @@ public class AppInitializer extends AbstractAnnotationConfigDispatcherServletIni
     }
 
     protected Class<?>[] getRootConfigClasses() {
-        return new Class[]{HibernateConfig.class};
+        return new Class[]{HibernateConfig.class, WebConfig.class};
     }
 
     protected Filter[] getServletFilters() {

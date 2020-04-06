@@ -1,9 +1,10 @@
 package usrcrud.service;
 
+import org.springframework.security.core.userdetails.UserDetailsService;
 import usrcrud.model.User;
 import java.util.List;
 
-public interface UserService {
+public interface UserService extends UserDetailsService {
 
     List<User> allUsers();
     void add(User user);
