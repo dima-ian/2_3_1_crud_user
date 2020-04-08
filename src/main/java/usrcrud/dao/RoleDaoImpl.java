@@ -5,13 +5,13 @@ import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-import usrcrud.model.User;
+import usrcrud.model.Role;
 
-import javax.persistence.Query;
 import java.util.List;
 
 @Repository
-public class UserDAOImpl implements UserDAO {
+@Transactional
+public class RoleDaoImpl implements RoleDao {
 
     private SessionFactory sessionFactory;
 
@@ -22,46 +22,38 @@ public class UserDAOImpl implements UserDAO {
 
     @Override
     @Transactional
-    public List<User> allUsers() {
+    public Role getRoleById(long id) {
         Session session = sessionFactory.getCurrentSession();
-        return session.createQuery("from User").list();
+        return session.get(Role.class, id);
     }
 
     @Override
     @Transactional
-    public void addUser(User user) {
+    public void addRole(Role role) {
         Session session = sessionFactory.getCurrentSession();
-        session.save(user);
+        session.save(role);
     }
 
     @Override
     @Transactional
-    public void deleteUser(Long id) {
+    public void editRole(Role role) {
         Session session = sessionFactory.getCurrentSession();
-        session.delete(getUserById(id));
+        Role result = getRoleById(role.getId());
+        result.setRole(role.getAuthority());
+        session.update(result);
     }
 
     @Override
     @Transactional
-    public void editUser(User user) {
+    public void deleteRole(long id) {
         Session session = sessionFactory.getCurrentSession();
-        session.merge(user);
+        session.delete(getRoleById(id));
     }
 
     @Override
     @Transactional
-    public User getUserById(Long id) {
+    public List<Role> getRoles() {
         Session session = sessionFactory.getCurrentSession();
-        return session.get(User.class, id);
+        return session.createQuery("FROM Role").getResultList();
     }
-
-    @Override
-    @Transactional
-    public User getUserByUserName(String userName) {
-        Session session = sessionFactory.getCurrentSession();
-        Query query = session.createQuery("FROM User where login = :paramName");
-        query.setParameter("paramName", userName);
-        return (User) query.getSingleResult();
-    }
-
 }

@@ -1,6 +1,8 @@
 package usrcrud.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import usrcrud.dao.UserDAO;
@@ -23,18 +25,33 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void add(User user) {  userDAO.add(user);  }
+    public void addUser(User user) {  userDAO.addUser(user);  }
 
     @Override
     @Transactional
-    public void delete(User user) {  userDAO.delete(user);  }
+    public void deleteUser(Long id) {  userDAO.deleteUser(id);  }
 
     @Override
     @Transactional
-    public void edit(User user) {  userDAO.edit(user);  }
+    public void editUser(User user) {  userDAO.editUser(user);  }
 
     @Override
     @Transactional
-    public User getById(int id) {  return userDAO.getById(id);  }
+    public User getUserById(Long id) {  return userDAO.getUserById(id);  }
 
+    @Override
+    @Transactional
+    public User getUserByUserName(String userName) {
+        return userDAO.getUserByUserName(userName);
+    }
+
+    @Override
+    @Transactional
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        User user = getUserByUserName(username);
+        if (user == null) {
+            throw new UsernameNotFoundException(username);
+        }
+        return user;
+    }
 }

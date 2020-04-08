@@ -5,119 +5,117 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
 import java.util.Collection;
+import java.util.Set;
 
 @Entity
 @Table(name = "usrcrud")
-public class User implements GrantedAuthority {
+public class User implements UserDetails {
 
     @Id
-    @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    @Column(name = "id")
+    private Long id;
 
-    @Column(name = "username")
-    private String userName;
+    @Column(name = "user_name")
+    private String name;
 
-    @Column(name = "password")
+    @Column(name = "user_login")
+    private String login;
+
+    @Column(name = "user_password")
     private String password;
 
-    @Column(name = "first_name")
-    private String firstName;
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.REFRESH)
+    @JoinTable(
+            name = "users_roles",
+            joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id"))
+    private Set<Role> roles;
 
-    @Column(name = "last_name")
-    private String lastName;
+    public User() { }
 
-    @Column(name = "email")
-    private String email;
-
-    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @JoinTable(name = "users_roles", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
-    private Collection<Role> roles;
-
-    public User() {  }
-
-    public User(String userName, String password, String firstName, String lastName, String email) {
-        this.userName = userName;
+    public User(String name, String login, String password) {
+        this.name = name;
+        this.login = login;
         this.password = password;
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.email = email;
     }
 
-    public User(String userName, String password, String firstName, String lastName, String email, Collection<Role> roles) {
-        this.userName = userName;
+    public User(long id, String name, String login, String password) {
+        this.id = id;
+        this.name = name;
+        this.login = login;
         this.password = password;
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.email = email;
-        this.roles = roles;
     }
 
-    public int getId() {
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {  return roles;  }
+
+    @Override
+    public String getPassword() {  return password;  }
+
+    @Override
+    public String getUsername() {  return name;  }
+
+    @Override
+    public boolean isAccountNonExpired() {  return true;  }
+
+    @Override
+    public boolean isAccountNonLocked() {  return true;  }
+
+    @Override
+    public boolean isCredentialsNonExpired() {  return true;  }
+
+    @Override
+    public boolean isEnabled() {  return true;  }
+
+    public long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(long id) {
         this.id = id;
     }
 
-    public String getUserName() {
-        return userName;
+    public String getName() {
+        return name;
     }
 
-    public void setUserName(String userName) {
-        this.userName = userName;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public String getPassword() {
-        return password;
+    public String getLogin() {
+        return login;
+    }
+
+    public void setLogin(String login) {
+        this.login = login;
     }
 
     public void setPassword(String password) {
         this.password = password;
     }
 
-    public String getFirstName() {
-        return firstName;
-    }
-
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
-
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public Collection<Role> getRoles() {
+    public Set<Role> getRoles() {
         return roles;
     }
 
-    public void setRoles(Collection<Role> roles) {
+    public void setRoles(Set<Role> roles) {
         this.roles = roles;
     }
 
     @Override
     public String toString() {
-        return "User{" + "id=" + id + ", userName='" + userName + '\'' + ", password='" + "*********" + '\''
-                + ", firstName='" + firstName + '\'' + ", lastName='" + lastName + '\'' + ", email='" + email + '\''
-                + ", roles=" + roles + '}';
-    }
-
-    @Override
-    public String getAuthority() {
-        return null;
+        return "User{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", login='" + login + '\'' +
+                ", password='" + password + '\'' +
+                ", roles=" + roles +
+                '}';
     }
 }
+
+
+

@@ -2,90 +2,86 @@ package usrcrud.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
+import usrcrud.model.Role;
 import usrcrud.model.User;
+import usrcrud.service.RoleService;
 import usrcrud.service.UserService;
 
-import java.util.ArrayList;
-import java.util.List;
+import javax.servlet.http.HttpServletRequest;
+import java.security.Principal;
+import java.util.Collections;
+import java.util.Set;
 
 @Controller
 @RequestMapping("/")
 public class UserController {
 
-    @Autowired
     private UserService userService;
 
+    private RoleService roleService;
+
     @Autowired
-    public void setUserService(UserService userService) {
+    public void setUserService(UserService userService, RoleService roleService) {
         this.userService = userService;
-    }
-
-    @RequestMapping(value = "/", method = RequestMethod.GET)
-    public ModelAndView allUsers() {
-        List<User> users = userService.allUsers();
-        ModelAndView modelAndView = new ModelAndView();
-        modelAndView.setViewName("users");
-        modelAndView.addObject("usersList", users);
-        return modelAndView;
-    }
-
-    @RequestMapping(value = "/edit/{id}", method = RequestMethod.GET)
-    public ModelAndView editPage(@PathVariable("id") int id) {
-        User user = userService.getById(id);
-        ModelAndView modelAndView = new ModelAndView();
-        modelAndView.setViewName("editPage");
-        modelAndView.addObject("user", user);
-        return modelAndView;
-    }
-
-    @RequestMapping(value = "/edit", method = RequestMethod.POST)
-    public ModelAndView editUser(@ModelAttribute("user") User user) {
-        ModelAndView modelAndView = new ModelAndView();
-        modelAndView.setViewName("redirect:/");
-        userService.edit(user);
-        return modelAndView;
-    }
-
-    @RequestMapping(value = "/add", method = RequestMethod.GET)
-    public ModelAndView addPage() {
-        ModelAndView modelAndView = new ModelAndView();
-        modelAndView.setViewName("editPage");
-        return modelAndView;
-    }
-
-    @RequestMapping(value = "/add", method = RequestMethod.POST)
-    public ModelAndView addUser(@ModelAttribute("user") User user) {
-        ModelAndView modelAndView = new ModelAndView();
-        modelAndView.setViewName("redirect:/");
-        userService.add(user);
-        return modelAndView;
-    }
-
-    @RequestMapping(value="/delete/{id}", method = RequestMethod.GET)
-    public ModelAndView deleteUser(@PathVariable("id") int id) {
-        ModelAndView modelAndView = new ModelAndView();
-        modelAndView.setViewName("redirect:/");
-        User user = userService.getById(id);
-        userService.delete(user);
-        return modelAndView;
-    }
-
-    @RequestMapping(value = "hello", method = RequestMethod.GET)
-    public String printWelcome(ModelMap model) {
-        List<String> messages = new ArrayList<>();
-        messages.add("Hello!");
-        messages.add("I'm Spring MVC-SECURITY application");
-        messages.add("5.2.0 version by sep'19 ");
-        model.addAttribute("messages", messages);
-        return "hello";
+        this.roleService = roleService;
     }
 
     @RequestMapping(value = "login", method = RequestMethod.GET)
-    public String loginPage() {
-        return "login";
+    public ModelAndView login(String error, String logout, ModelAndView modelAndView) {
+        modelAndView.setViewName("login");
+        return modelAndView;
+    }
+
+    @RequestMapping(value = "/admin", method = RequestMethod.GET)
+    public ModelAndView startPageAdmin() {
+        ModelAndView modelAndView = new ModelAndView();
+        modelAndView.addObject( "user", new User());
+        modelAndView.addObject("users", this.userService.allUsers());
+        modelAndView.addObject("roles", this.roleService.getRoles());
+        modelAndView.setViewName("admin-usrs");
+        return modelAndView;
+    }
+
+    @RequestMapping(value = {"/admin/add"}, method = RequestMethod.POST)
+    public ModelAndView add(@ModelAttribute("user") User user, HttpServletRequest request) {
+        Set<Role> roleSet = Collections.singleton(roleService.getRoleById(Long.valueOf(request.getParameter("role"))));
+        user.setRoles(roleSet);
+        userService.addUser(user);
+        return new ModelAndView("redirect:/admin");
+    }
+
+    @RequestMapping(value = {"/admin/edit"}, method = RequestMethod.POST)
+    public ModelAndView updatePost(@ModelAttribute("admin/user") User user, HttpServletRequest request) {
+        Set<Role> roleSet = Collections.singleton(roleService.getRoleById(Long.valueOf(request.getParameter("role"))));
+        user.setRoles(roleSet);
+        userService.editUser(user);
+        return new ModelAndView("redirect:/admin");
+    }
+
+    @RequestMapping(value = {"/admin/edit"}, method = RequestMethod.GET)
+    public ModelAndView updateGet(HttpServletRequest request) {
+        long employeeId = Long.parseLong(request.getParameter("id"));
+        User user = userService.getUserById(employeeId);
+        ModelAndView model = new ModelAndView("edit");
+        model.addObject("user", user);
+        return model;
+    }
+
+    @RequestMapping(value = {"/admin/delete"}, method = RequestMethod.POST)
+    public ModelAndView deleteEmployee(HttpServletRequest request) {
+        userService.deleteUser(Long.valueOf(request.getParameter("id")));
+        return new ModelAndView("redirect:/admin");
+    }
+
+    @RequestMapping(value = "/user", method = RequestMethod.GET)
+    public ModelAndView helloPageUser(ModelAndView modelAndView, Principal principal) {
+        String name = principal.getName();
+        User user = userService.getUserByUserName(name);
+        modelAndView.addObject(user);
+        modelAndView.setViewName("the_user");
+        return modelAndView;
     }
 
 }
